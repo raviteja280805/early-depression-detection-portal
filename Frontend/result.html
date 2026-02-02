@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wellness Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container" style="text-align: center; max-width: 800px;">
+
+        <h1 style="font-size: 2rem; margin-bottom: 5px;">Your Wellness Dashboard</h1>
+        <p style="color: #90a4ae; font-size: 0.95rem; margin-bottom: 40px;">Comprehensive Analysis & Guidance</p>
+
+        <!-- Main Score -->
+        <div class="main-score-container" style="margin-bottom: 30px;">
+            <div class="main-score-number" id="finalScore">--</div>
+            <div class="main-score-label" id="finalCategory">Loading...</div>
+        </div>
+
+        <!-- Detailed AI Summary (No Graphs) -->
+        <div class="summary-box">
+            <h3>
+                <span style="font-size:1.5rem; margin-right:10px;">📋</span>
+                Analysis Report
+            </h3>
+            <div id="aiSummaryText" class="summary-content">
+                Loading detailed analysis...
+            </div>
+        </div>
+
+        <!-- Actionable Insights -->
+        <div class="insights-section">
+            <h3 id="adviceTitle">What this means for you</h3>
+            <div id="adviceList">
+                <!-- Insight Items will be injected here -->
+            </div>
+        </div>
+
+        <div style="margin-top: 50px; display: flex; justify-content: center; gap: 20px;">
+            <button class="secondary" onclick="window.location.href='questionnaire.html'" style="width: auto;">New
+                Assessment</button>
+            <button onclick="window.location.href='index.html'" style="width: auto;">Logout</button>
+        </div>
+
+        <div class="disclaimer">
+            This assessment supports mental well-being awareness and is not a medical diagnosis.
+        </div>
+    </div>
+    <script src="result.js"></script>
+</body>
+
+</html>

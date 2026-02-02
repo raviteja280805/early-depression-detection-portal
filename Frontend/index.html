@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Early Depression Detection</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="container"
+        style="max-width: 450px; text-align: center; display: flex; flex-direction: column; justify-content: center;">
+
+        <div style="margin-bottom: 2rem;">
+            <!-- Simple SVG Icon for logo feel -->
+            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" stroke="#42a5f5" stroke-width="2" />
+                <path d="M8 14C8 14 9.5 16 12 16C14.5 16 16 14 16 14" stroke="#42a5f5" stroke-width="2"
+                    stroke-linecap="round" />
+                <circle cx="9" cy="9" r="1" fill="#42a5f5" />
+                <circle cx="15" cy="9" r="1" fill="#42a5f5" />
+            </svg>
+        </div>
+
+        <h1>Welcome</h1>
+        <h2>Your wellness journey starts here.</h2>
+
+        <form id="loginForm" style="text-align: left;">
+            <div style="margin-bottom: 15px;">
+                <label style="display:block; margin-bottom:5px; font-weight:500; font-size:0.9rem;">Username</label>
+                <input type="text" id="username" placeholder="Enter username" required>
+            </div>
+
+            <div style="margin-bottom: 25px;">
+                <label style="display:block; margin-bottom:5px; font-weight:500; font-size:0.9rem;">Password</label>
+                <input type="password" id="password" placeholder="Enter password" required>
+            </div>
+
+            <button type="submit">Secure Login</button>
+        </form>
+
+        <div id="errorMsg" class="hidden"
+            style="color: #ef5350; margin-top: 15px; font-size: 0.9rem; background: #ffebee; padding: 10px; border-radius: 8px;">
+            Invalid credentials.
+        </div>
+
+
+
+        <div class="disclaimer">
+            This assessment provides supportive insights and general well-being guidance.
+        </div>
+    </div>
+    <script src="login.js"></script>
+</body>
+
+</html>
