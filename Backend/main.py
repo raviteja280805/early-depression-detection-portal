@@ -18,27 +18,27 @@ class InputData(BaseModel):
     age: int
     text: str
     
-    # Emotional Stability
-    q1_mood: int          # 0=Never, 3=Always
+    
+    q1_mood: int          
     q2_anxiety: int
     q3_irritability: int
     
-    # Stress & Overthinking
+    
     q4_stress: int
     q5_overthinking: int
     
-    # Physical/Lifestyle
-    q6_sleep: int         # 0=Never, 3=Always (Reverse)
+
+    q6_sleep: int         
     q7_energy: int
     
-    # Academic/Work
-    q8_work_pressure: int # 0=Never, 3=Always
-    q9_focus: int         # 0=Never, 3=Always (Reverse)
     
-    # Social/Motivation
-    q10_social: int       # Reverse
-    q11_activities: int   # Reverse
-    q12_future: int       # Reverse
+    q8_work_pressure: int 
+    q9_focus: int         
+    
+    
+    q10_social: int       
+    q11_activities: int   
+    q12_future: int       
 
 @app.post("/analyze")
 def analyze_sentiment(input_data: InputData):
@@ -46,42 +46,40 @@ def analyze_sentiment(input_data: InputData):
         raise HTTPException(status_code=400, detail="Text cannot be empty")
     
     try:
-        # --- 1. AI Analysis ---
+    
         ai_results = sentiment_model.analyze_text(input_data.text)
         emotions = ai_results['emotions']
         sentiment = ai_results['sentiment']
         
-        # Calculate AI Positivity Score (0-100)
-        # If Positive: Score is high. If Negative: Score is low.
+        
         ai_positivity = 0
         if sentiment['label'] == 'POSITIVE':
             ai_positivity = sentiment['score'] * 100
         else:
             ai_positivity = (1.0 - sentiment['score']) * 100
 
-        # --- 2. Sub-Category Scoring (0-100 Normalized) ---
         
-        # ANXIETY (q2 + q5) -> Max 6
+        
+        
         raw_anxiety = input_data.q2_anxiety + input_data.q5_overthinking
         score_anxiety = (raw_anxiety / 6) * 100
         
-        # STRESS (q3 + q4 + q8) -> Max 9
+    
         raw_stress = input_data.q3_irritability + input_data.q4_stress + input_data.q8_work_pressure
         score_stress = (raw_stress / 9) * 100
         
-        # MOOD BALANCE (Inverse of Risk)
-        # Mood is good if q1 is low and q12 is high.
-        # Let's calculate "Mood Risk" first: q1 + (3-q12). Max 6.
+        
+        
+        
         mood_risk = input_data.q1_mood + (3 - input_data.q12_future)
         score_mood_balance = 100 - ((mood_risk / 6) * 100)
 
-        # --- 3. Total Risk Calculation ---
-        # Direct Risk (High value = High Risk)
+     
         risk_direct = (
             input_data.q1_mood + input_data.q2_anxiety + input_data.q3_irritability + 
             input_data.q4_stress + input_data.q5_overthinking + input_data.q8_work_pressure
         ) 
-        # Reverse Risk (Low value = High Risk)
+        
         risk_reverse = (
             (3 - input_data.q6_sleep) + (3 - input_data.q7_energy) + (3 - input_data.q9_focus) + 
             (3 - input_data.q10_social) + (3 - input_data.q11_activities) + (3 - input_data.q12_future) 
@@ -91,87 +89,98 @@ def analyze_sentiment(input_data: InputData):
         max_possible_points = 36
         q_risk_norm = total_risk_points / max_possible_points
 
-        # AI Risk (Inverse of Positivity)
+        
         ai_risk_score = 1.0 - (ai_positivity / 100)
 
-        # Final Weighted Score (0-100 Risk)
+        
         final_risk_score = ((q_risk_norm * 0.7) + (ai_risk_score * 0.3)) * 100
         
-        # --- 4. Detailed Summary Generation ---
         
-        # Categorization
-        if final_risk_score < 30:
-            category = "Good / Stable"
-            tone = "positive"
-        elif final_risk_score < 55:
-            category = "Mild Stress"
-            tone = "mild"
+        
+
+        dominant_emotion = emotions[0]['label'].lower() if emotions else "neutral"
+
+        if final_risk_score < 40:
+            category = "NORMAL"
         elif final_risk_score < 75:
-            category = "Moderate Stress"
-            tone = "moderate"
+            category = "MODERATE"
         else:
-            category = "High Emotional Distress"
-            tone = "high"
+            category = "SEVERE"
 
-        # Constructing the Detailed Report
-        details = []
-        
-        # Emotional
-        if score_mood_balance < 50:
-            details.append("Emotional stability appears low, indicating feelings of sadness or hopelessness.")
+        # 1. Intelligent Summary Generation
+        if category == "NORMAL":
+            condition_msg = "You are doing absolutely well. Your emotional health appears stable."
+        elif category == "MODERATE":
+            condition_msg = "You may be experiencing some level of stress or emotional imbalance."
         else:
-            details.append("Your emotional balance reflects a generally stable outlook.")
-            
-        # Stress
-        if score_stress > 60:
-            details.append("Stress indicators are elevated, likely due to academic or work pressures.")
-        elif score_stress > 30:
-            details.append("You are experiencing manageable levels of daily stress.")
-        else:
-            details.append("Your stress levels are well within a healthy range.")
-            
-        # Behavioral
-        behaviors = []
-        if input_data.q6_sleep <= 1: behaviors.append("sleep quality")
-        if input_data.q10_social <= 1: behaviors.append("social withdrawal")
-        if behaviors:
-            details.append(f"Behavioral patterns show potential concerns with {', '.join(behaviors)}.")
-        else:
-            details.append("Your behavioral patterns (sleep, social interaction) appear healthy.")
+            condition_msg = "Your responses indicate significant emotional distress. It is recommended to consult a qualified doctor or mental health expert."
 
-        summary_text = f"Hello {input_data.name}, here is your comprehensive analysis.\n\n"
-        summary_text += " ".join(details)
+        # Behavioral insights
+        issues = []
+        if input_data.q6_sleep <= 1: issues.append("reduced sleep quality")
+        else: issues.append("good sleep patterns")
         
-        # Actionable Advice
-        if tone == "positive":
-            advice_title = "Maintain Your Momentum"
+        if input_data.q10_social <= 1: issues.append("social withdrawal")
+        else: issues.append("active social interactions")
+        
+        if (input_data.q2_anxiety + input_data.q5_overthinking) >= 4: issues.append("signs of anxiety")
+        
+        if input_data.q1_mood >= 2: issues.append("depressed mood")
+
+        behavioral_insight = f"Behavioral check: We noticed {', '.join(issues)}."
+
+        sec_summary = f"Hello {input_data.name},<br>{condition_msg}<br>{behavioral_insight}"
+
+        # Emotional Analysis
+        sec_emotional = f"Based on your written input, the predominant emotion is <b>{dominant_emotion}</b>. "
+        if dominant_emotion in ['sadness', 'fear', 'anger', 'disgust', 'grief']:
+            sec_emotional += "It is completely valid to experience these challenging emotions. It's important to acknowledge them."
+        elif dominant_emotion in ['joy', 'love', 'optimism', 'caring', 'approval']:
+            sec_emotional += "Your text reflects an uplifting and positive outlook."
+        else:
+            sec_emotional += "This reflects a generally mixed or neutral state of mind."
+
+        # Stress Level
+        if score_stress < 40:
+            sec_stress = f"Score: {round(score_stress)}%. Your stress is well managed and within a very healthy range."
+        elif score_stress < 75:
+            sec_stress = f"Score: {round(score_stress)}%. You are carrying a moderate stress load, likely from daily or academic pressures."
+        else:
+            sec_stress = f"Score: {round(score_stress)}%. You are facing a significantly high stress load right now."
+
+        summary_text = f"<div style='margin-bottom:12px;'><b>Overall Summary</b><br>{sec_summary}</div><div style='margin-bottom:12px;'><b>Emotional Analysis</b><br>{sec_emotional}</div><div><b>Stress Level</b><br>{sec_stress}</div>"
+
+        # Dynamic Response Logic
+        advice_title = "Recommendations"
+        advice_list = []
+
+        if category == "NORMAL":
             advice_list = [
-                "Keep up your regular sleep schedule.",
-                "Continue engaging in hobbies you enjoy.",
-                "Practice gratitude to boost your mood further."
+                "Ensure you get proper sleep each night.",
+                "Engage in regular physical exercise.",
+                "Maintain active social interaction with peers."
             ]
-        elif tone == "mild":
-            advice_title = "Preventive Care Suggestions"
+        elif category == "MODERATE":
             advice_list = [
-                "Take short 5-minute breaks during study/work.",
-                "Try a simple breathing exercise before sleep.",
-                "Ensure you are staying hydrated."
+                "Practice relaxation techniques and mindfulness.",
+                "Talk to your friends or family members about how you feel.",
+                "Consider reducing your screen time, especially before bed."
             ]
-        elif tone == "moderate":
-            advice_title = "Active Coping Strategies"
+        else:
             advice_list = [
-                "Prioritize 7-8 hours of sleep tonight.",
-                "Talk to a friend or family member about what's bothering you.",
-                "Engage in physical activity (walk/jog) to release tension."
+                "Consider consulting a professional mental health counselor or therapist.",
+                "Reach out for dedicated support from a trusted friend, adult, or helpline.",
+                "It is recommended to consult a qualified doctor or mental health expert."
             ]
-        else: # high
-            advice_title = "Support & Recovery"
-            advice_list = [
-                "Please reach out to a school counselor or trusted adult.",
-                "Avoid isolating yourself; keep communication open.",
-                "Focus on getting through one day at a time.",
-                "Remember, asking for help is a sign of strength."
-            ]
+
+        # Emotion-specific personalized suggestions
+        emo_mapped = dominant_emotion
+        if emo_mapped in ['sadness', 'grief', 'remorse']:
+            advice_list.append("For sadness: Try journaling your thoughts or talking to someone you trust.")
+        elif emo_mapped in ['anxiety', 'fear', 'nervousness']:
+            advice_list.append("For anxiety: Practice deep breathing exercises and meditation.")
+        elif emo_mapped in ['anger', 'annoyance', 'disapproval']:
+            advice_list.append("For anger: Engage in physical activity or mindfulness to release tension constructively.")
 
         return {
             "name": input_data.name,

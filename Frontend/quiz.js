@@ -1,7 +1,7 @@
 let currentStep = 1;
 const totalSteps = 6;
 
-// Initialize
+
 document.addEventListener('DOMContentLoaded', () => {
     updateProgress();
 });
@@ -15,7 +15,7 @@ function updateProgress() {
 function nextStep(step) {
     const currentStepDiv = document.getElementById(`step${step}`);
 
-    // Step 1 Validation (Name & Age)
+   
     if (step === 1) {
         const name = document.getElementById('userName').value.trim();
         const age = document.getElementById('userAge').value;
@@ -25,7 +25,7 @@ function nextStep(step) {
         }
     }
     else {
-        // Radio Button Validation for other steps
+        
         const radios = currentStepDiv.querySelectorAll('input[type="radio"]');
         const names = new Set();
         radios.forEach(r => names.add(r.name));
@@ -39,7 +39,7 @@ function nextStep(step) {
         }
     }
 
-    // Hide current, Show next
+    
     document.getElementById(`step${step}`).classList.remove('active');
     currentStep++;
     document.getElementById(`step${currentStep}`).classList.add('active');
@@ -67,7 +67,7 @@ document.getElementById('quizForm').addEventListener('submit', async function (e
         return;
     }
 
-    // Prepare Payload
+    
     const payload = {
         name: document.getElementById('userName').value.trim(),
         age: parseInt(document.getElementById('userAge').value),
@@ -87,19 +87,19 @@ document.getElementById('quizForm').addEventListener('submit', async function (e
         q12_future: getRadioValue('q12_future')
     };
 
-    // UI Elements
+    
     const submitBtn = document.getElementById('submitBtn');
     const loading = document.getElementById('loading');
 
-    // 1. Reset UI state for analysis
+    
     submitBtn.disabled = true;
     submitBtn.innerText = "Analyzing...";
     loading.classList.remove('hidden');
-    // Simple loader message
+    
     loading.innerHTML = '<div style="font-weight: 600; color: #42a5f5;">Analyzing your responses...</div>';
 
     try {
-        // Send Request (No Timeout)
+        
         const response = await fetch('http://127.0.0.1:8000/analyze', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -115,7 +115,7 @@ document.getElementById('quizForm').addEventListener('submit', async function (e
     } catch (error) {
         console.error(error);
 
-        // Handle UI for Failure
+        
         submitBtn.disabled = false;
         submitBtn.innerText = "Try Again";
         loading.innerHTML = `<div style="font-weight: 600; color: #f44336;">Server connection failed. Please try again.</div>`;

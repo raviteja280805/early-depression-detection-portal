@@ -8,34 +8,33 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const data = JSON.parse(dataStr);
 
-    // --- 1. Populate Main Score ---
-    const riskScore = data.final_score; // 0 (Low Risk) to 100 (High Risk)
-    // Convert to Wellness Score (0 = Bad, 100 = Good)
+    
+    const riskScore = data.final_score; 
     let wellnessScore = 100 - riskScore;
 
-    // Animate Number
+   
     animateValue('finalScore', 0, wellnessScore, 1000);
     document.getElementById('finalCategory').innerText = data.category;
 
-    // Color coding main score
+    
     const mainContainer = document.querySelector('.main-score-container');
-    let themeColor = '#4caf50'; // Green
+    let themeColor = '#4caf50';
 
-    if (data.category.includes('High')) {
+    if (data.category === 'SEVERE') {
         themeColor = '#f44336';
-    } else if (data.category.includes('Moderate')) {
+    } else if (data.category === 'MODERATE') {
         themeColor = '#ff9800';
-    } else if (data.category.includes('Mild')) {
-        themeColor = '#fbc02d';
+    } else if (data.category === 'NORMAL') {
+        themeColor = '#4caf50';
     }
 
     mainContainer.style.border = `5px solid ${themeColor}`;
     document.getElementById('finalScore').style.color = themeColor;
 
-    // --- 2. Detailed Summary ---
-    document.getElementById('aiSummaryText').innerText = data.summary;
+    
+    document.getElementById('aiSummaryText').innerHTML = data.summary;
 
-    // --- 3. Actionable Insights ---
+    
     document.getElementById('adviceTitle').innerText = data.advice.title;
 
     const adviceListDiv = document.getElementById('adviceList');
@@ -44,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
     data.advice.steps.forEach((step, index) => {
         const item = document.createElement('div');
         item.className = 'insight-item';
-        // Alternate icons for visual variety
+        
         const icons = ['✓', '★', '➜', '❤'];
         const icon = icons[index % icons.length];
 
@@ -55,9 +54,26 @@ document.addEventListener('DOMContentLoaded', function () {
         adviceListDiv.appendChild(item);
     });
 
+    document.getElementById('downloadPdfBtn').addEventListener('click', function () {
+        const element = document.querySelector('.container');
+        const opt = {
+            margin: 0.5,
+            filename: 'Wellness_Summary.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+
+        const buttonsDiv = document.getElementById('actionButtons');
+        buttonsDiv.style.display = 'none';
+
+        html2pdf().set(opt).from(element).save().then(() => {
+            buttonsDiv.style.display = 'flex';
+        });
+    });
 });
 
-// Helper: Animate Number Counting
+
 function animateValue(id, start, end, duration) {
     const obj = document.getElementById(id);
     let startTimestamp = null;
